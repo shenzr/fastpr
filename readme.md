@@ -13,7 +13,7 @@ In this file, we will briefly introduce how to deploy and run the FastPR prototy
 2. [All nodes] Install HDFS 3.1.1 and construct the HDFS cluster. 
 
    ```shell
-   $ tar xvf hadoop-3.1.1-src.tar.gz 
+   $ tar -zxvf hadoop-3.1.1-src.tar.gz 
    ```
 
 3. Configure the configuration files under the folder hadoop-3.1.1/etc/hadoop/, including core-site.xml, hadoop-env.sh, hdfs-site.xml, and workers. 
@@ -75,10 +75,9 @@ After filling the information in the metadata/config.xml, we can deploy the Fast
 1. Extract the files of FastPR, compile the source code of Jerasure and FastPR. 
 
    ```shell
-   $ tar xvf fastpr-v1.0tar.gz
-   $ cd fastpr-v1.0/Jerasure
-   $ make                          # compile Jerasure library
-   $ cd .. && make                 # compile FastPR
+   $ tar -zxvf fastpr-v1.0.tar.gz
+   $ cd fastpr-v1.0/Jerasure && make  # compile Jerasure library
+   $ cd .. && make                    # compile FastPR
    ```
 
    This command will generate three executable files, named "**HyReCoordinator**", "**HyRePeerNode**", and "**HyReHotStandby**". Note that "HyRe" here means the hybrid usage of migration and reconstruction, i.e., the core idea of FastPR. The roles of these three files are as follows. 

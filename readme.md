@@ -4,21 +4,22 @@ In this file, we will briefly introduce how to deploy and run the FastPR prototy
 
 ## Preparation  
 
-1. [All nodes] Install necessary packages, including make and g++ 
+1. **[All nodes]** Install necessary packages, including make and g++ 
 
    ```shell
    $ sudo apt-get install make g++
    ```
 
-2. [All nodes] Install HDFS 3.1.1 and construct the HDFS cluster. 
+2. **[All nodes]** Install [HDFS 3.1.1](http://www.apache.org/dyn/closer.cgi/hadoop/common/hadoop-3.1.1/hadoop-3.1.1-src.tar.gz), compile it with erasure coding supported, and deploy the HDFS cluster. 
 
    ```shell
+   $ wget http://apache.01link.hk/hadoop/common/hadoop-3.1.1/hadoop-3.1.1-src.tar.gz
    $ tar -zxvf hadoop-3.1.1-src.tar.gz 
    ```
 
-3. Configure the configuration files under the folder hadoop-3.1.1/etc/hadoop/, including core-site.xml, hadoop-env.sh, hdfs-site.xml, and workers. 
+3. **[All nodes]** Configure the configuration files under the folder hadoop-3.1.1/etc/hadoop/, including core-site.xml, hadoop-env.sh, hdfs-site.xml, and workers. 
 
-4. [All nodes] set the environment variables for HDFS and JAVA in ~/.bashrc. The following is an sample used in our testbed 
+4. **[All nodes]** set the environment variables for HDFS and JAVA in ~/.bashrc. The following is an sample used in our testbed 
 
    ```shell
    export JAVA_HOME=/home/ncsgroup/java
@@ -26,13 +27,13 @@ In this file, we will briefly introduce how to deploy and run the FastPR prototy
    export PATH=$JAVA_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH
    ```
 
-5. [Client] Create a file named "testfile", whose size should be multiple times of the data size of a stripe. 
+5. **[Client]** Create a file named "testfile", whose size should be multiple times of the data size of a stripe (i.e., the size of data chunks in a stripe). As we use RS(5,3) as an example in the following, we can create a file with the size of 30GB.  
 
    ```shell
    $ dd if=/dev/urandom of=testfile bs=1M count=30720    # create a random file (30GB)
    ```
 
-6. [Client] Select and enable an erasure coding scheme and write data to the HDFS
+6. **[Client]** Select and enable an erasure coding scheme and write data to the HDFS. Here we use RS(5,3) as an instance. If you use other erasure coding schemes, please ensure that the size of testfile (in step 5) should be multiple times of the data size of a stripe. 
 
    ```shell
    $ hadoop fs -mkdir /ec_test                      # create a folder named /ec_test 
@@ -40,7 +41,7 @@ In this file, we will briefly introduce how to deploy and run the FastPR prototy
    $ hdfs ec -enablePlicy -policy RS-3-2-1024k      # enable an erasure coding policy 
    $ hdfs ec -setPolicy -path /ec_test -policy RS-3-2-1024k  # set ec policy to /ec_test
    $ hdfs ec -getPolicy -path /ec_test              # confirm the ec policy of /ec_test 
-   $ hadoop fs -put testfile /ec_test              # write testfile to /ec_test
+   $ hadoop fs -put testfile /ec_test               # write testfile to /ec_test
    ```
 
    
@@ -124,13 +125,13 @@ After filling the information in the metadata/config.xml, we can deploy the Fast
    The following command is to repair the 50 chunks of the STF node (suppose node id is 0) using random repair
 
    ```shell
-   $ ./HyReCoordinator 0 random 50    # for random repair 
+   $ ./HyReCoordinator 0 random 50      # for random repair 
    ```
 
    The following command is to repair the 50 chunks of the STF node (suppose node id is 0) using HyRe (i.e., FastPR) 
 
    ```shell
-   $ ./HyReCoordinator 0 hyre 50      # for FastPR 
+   $ ./HyReCoordinator 0 hyre 50        # for FastPR 
    ```
 
    

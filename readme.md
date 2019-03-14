@@ -2,7 +2,7 @@ In this file, we will briefly introduce how to deploy and run the FastPR prototy
 
 
 
-## Preparation  
+## 1. Preparation  
 
 1. **[All nodes]** Install necessary packages, including make and g++ 
 
@@ -10,16 +10,29 @@ In this file, we will briefly introduce how to deploy and run the FastPR prototy
    $ sudo apt-get install make g++
    ```
 
-2. **[All nodes]** Install [HDFS 3.1.1](http://www.apache.org/dyn/closer.cgi/hadoop/common/hadoop-3.1.1/hadoop-3.1.1-src.tar.gz), compile it with erasure coding supported, and deploy the HDFS cluster. 
+2. **[All nodes]** Install [ISA-L library](https://github.com/01org/isa-l)
+
+   ```shell
+   $ git clone https://github.com/01org/isa-l.git
+   $ cd isa-l/
+   $ ./autogen.sh
+   $ ./configure
+   $ make
+   $ sudo make install
+   ```
+
+3. **[All Nodes]** Download [HDFS 3.1.1](http://www.apache.org/dyn/closer.cgi/hadoop/common/hadoop-3.1.1/hadoop-3.1.1-src.tar.gz), compile it with erasure coding supported, and deploy the HDFS cluster. 
 
    ```shell
    $ wget http://apache.01link.hk/hadoop/common/hadoop-3.1.1/hadoop-3.1.1-src.tar.gz
    $ tar -zxvf hadoop-3.1.1-src.tar.gz 
+   $ cd hadoop-3.1.1-src/
+   $ mvn package -DskipTests -Dtar -Dmaven.javadoc.skip=true -Drequire.isal -Pdist,native -DskipShade -e     # use maven to compile the HDFS for supporting erasure coding
    ```
 
-3. **[All nodes]** Configure the configuration files under the folder hadoop-3.1.1/etc/hadoop/, including core-site.xml, hadoop-env.sh, hdfs-site.xml, and workers. 
+4. **[All nodes]** Configure the configuration files under the folder hadoop-3.1.1/etc/hadoop/, including core-site.xml, hadoop-env.sh, hdfs-site.xml, and workers. 
 
-4. **[All nodes]** set the environment variables for HDFS and JAVA in ~/.bashrc. The following is an sample used in our testbed 
+5. **[All nodes]** set the environment variables for HDFS and JAVA in ~/.bashrc. The following is an sample used in our testbed 
 
    ```shell
    export JAVA_HOME=/home/ncsgroup/java
@@ -27,13 +40,13 @@ In this file, we will briefly introduce how to deploy and run the FastPR prototy
    export PATH=$JAVA_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH
    ```
 
-5. **[Client]** Create a file named "testfile", whose size should be multiple times of the data size of a stripe (i.e., the size of data chunks in a stripe). As we use RS(5,3) as an example in the following, we can create a file with the size of 30GB.  
+6. **[Client]** Create a file named "testfile", whose size should be multiple times of the data size of a stripe (i.e., the size of data chunks in a stripe). As we use RS(5,3) as an example in the following, we can create a file with the size of 30GB.  
 
    ```shell
    $ dd if=/dev/urandom of=testfile bs=1M count=30720    # create a random file (30GB)
    ```
 
-6. **[Client]** Select and enable an erasure coding scheme and write data to the HDFS. Here we use RS(5,3) as an instance. If you use other erasure coding schemes, please ensure that the size of testfile (in step 5) should be multiple times of the data size of a stripe. 
+7. **[Client]** Select and enable an erasure coding scheme and write data to the HDFS. Here we use RS(5,3) as an instance. If you use other erasure coding schemes, please ensure that the size of testfile (in step 6) should be multiple times of the data size of a stripe. 
 
    ```shell
    $ hadoop fs -mkdir /ec_test                      # create a folder named /ec_test 
@@ -46,7 +59,7 @@ In this file, we will briefly introduce how to deploy and run the FastPR prototy
 
    
 
-## Configuration 
+## 2. Configuration 
 
 The configuration of FastPR is realized by a XML file named config.xml, which is stored under the folder "metadata". The config.xml specifies the following parameters and their physical meanings.
 
@@ -69,7 +82,7 @@ The configuration of FastPR is realized by a XML file named config.xml, which is
 | local_ip            | IP address of this node                                      |
 | local_data_path     | Absolute path that stores the HDFS data chunks (also called blocks) |
 
-## Deployment 
+## 3. Deployment 
 
 After filling the information in the metadata/config.xml, we can deploy the FastPR as follows: 
 

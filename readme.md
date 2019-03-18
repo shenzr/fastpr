@@ -212,23 +212,31 @@ The following table shows the configuration parameters used in our testbed.
 
 #### 3.1 Download and Install
 
-After filling the information in the metadata/config.xml, we can deploy the FastPR as follows: 
+We can deploy the FastPR as follows: 
 
-- Extract the files of FastPR, compile the source code of Jerasure and FastPR. 
+- If you choose to download the source code from the [project website](http://adslab.cse.cuhk.edu.hk/software/fastpr) of FastPR, then use the following commands to extract the files of FastPR and compile FastPR. 
 
   ```shell
   $ tar -zxvf fastpr-v1.0.tar.gz
-  $ cd fastpr-v1.0/Jerasure && make  # compile Jerasure library
+  $ cd fastpr-v1.0/Jerasure && make  # compile the Jerasure library needed in FastPR
   $ cd .. && make                    # compile FastPR
   ```
 
-  This command will generate three executable files, named "**FastPRCoordinator**", "**FastPRPeerNode**", and "**FastPRHotStandby**". The roles of these three files are as follows. 
+- If you choose to download the source code from [GitHub](https://github.com/shenzr/fastpr), then use the following commands to compile FastPR
+
+  ```shell
+  $ git clone https://github.com/shenzr/fastpr.git
+  $ cd fastpr/Jerasure && make 
+  $ cd .. && make
+  ```
+
+  The above commands will generate three executable files, named "**FastPRCoordinator**", "**FastPRPeerNode**", and "**FastPRHotStandby**". The roles of these three files are as follows. 
 
 | Executable files  | Functionality                                                |
 | ----------------- | ------------------------------------------------------------ |
-| FastPRCoordinator | I.e., Coordinator in our paper. It will determine which chunks to be reconstructed and migrated, and issue commands to guide the repair. |
-| FastPRPeerNode    | It runs as agents in our paper. It receives commands from the Coordinator, parses the commands to understand its role (i.e., sender or receiver), and does the jobs (e.g., read which data chunk and send it to which DataNode, or receive how many data chunks and the name of the repaired chunk) specified in the commands. |
-| FastPRHotStandby  | It also runs as agents in our paper. It will dedicatedly receive data for data repair. |
+| FastPRCoordinator | Coordinator in our paper. It will determine which chunks to be reconstructed and migrated, and issue commands to guide the repair. |
+| FastPRPeerNode    | It runs as an agent in our paper. It receives commands from the Coordinator, parses the commands to understand its role (i.e., sender or receiver), and does the jobs (e.g., read which data chunk and send it to which DataNode, or receive how many data chunks and the name of the repaired chunk) specified in the commands. |
+| FastPRHotStandby  | It also runs as an agent in our paper. It will dedicatedly receive data for repair. |
 
 - Fill in the information (including system information, and the information of erasure coding) in the metadata/config.xml (see our example in 2.2)
 
@@ -279,7 +287,7 @@ $ ./FastPRCoordinator 0 fastpr 50      # for FastPR
 
 
 
-When the program runs, the coordinator will find a DataNode for each repaired data chunk and its metadata chunk. The repaired data chunks and their metadata chunks are stored at the path "$local_data_path/subdir0" of the DataNode ($local_data_path is specified in the config.xml file (see Section 2.1)). 
+When the program runs, the coordinator will find a DataNode to store each repaired data chunk and its metadata chunk. The repaired data chunks and their metadata chunks are stored at the path "$local_data_path/subdir0" of the DataNode ($local_data_path is specified in the config.xml file (see Section 2.1)). 
 
 
 

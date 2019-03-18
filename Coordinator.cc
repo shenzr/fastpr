@@ -377,7 +377,7 @@ int Coordinator::greedy_replacement(int num_related_stripes, int soon_to_fail_no
 }
 
 // get an initial solution of repair groups
-int Coordinator::hyre_establish_rg(int num_related_stripes, int soon_to_fail_node){
+int Coordinator::fastpr_establish_rg(int num_related_stripes, int soon_to_fail_node){
 
     int i;
     int stripe_id;
@@ -531,8 +531,8 @@ void Coordinator::preprocess(int soon_to_fail_node, int specified_repair_num){
         }
 }
 
-// use fastpr to repair the chunks. We use HyRe to denote the core idea of fastpr, i.e., the hybrid repair. 
-int Coordinator::HyReRepair(int soon_to_fail_node){
+// use fastpr to repair the chunks. 
+int Coordinator::FastPRRepair(int soon_to_fail_node){
 
     if(_repair_scenario == "scatteredRepair")
         _num_stripes_per_group=(int)(floor((_peer_node_num-1)*1.0/_ecK));
@@ -559,7 +559,7 @@ int Coordinator::HyReRepair(int soon_to_fail_node){
     _cur_matching_stripe=(int*)malloc(sizeof(int)*_rg_num); // recording the number of matching stripes in each rg
     _record_stripe_id=(int*)malloc(sizeof(int)*_num_stripes_per_group);
 
-    int ret = hyre_establish_rg(_num_rebuilt_chunks, soon_to_fail_node);
+    int ret = fastpr_establish_rg(_num_rebuilt_chunks, soon_to_fail_node);
  
      cout << "after:_cur_matching_stripe" << std::endl;
     for(int i=0; i<_rg_num; i++)
@@ -1097,7 +1097,7 @@ void Coordinator::doProcess(int soon_to_fail_node, int real_rg_num, char* repair
     for(i=0; i<real_rg_num; i++) 
         rg_index[i]=i;
 
-    if(strcmp("hyre", repair_method) == 0)
+    if(strcmp("fastpr", repair_method) == 0)
         QuickSort_index(sort_cur_matching_stripe, rg_index, 0, real_rg_num-1);
 
     // get the cauchy encoding matrix
@@ -1142,7 +1142,7 @@ void Coordinator::doProcess(int soon_to_fail_node, int real_rg_num, char* repair
         num_repair_chunk = sort_cur_matching_stripe[repair_rg_index];          
         repair_rg_id = rg_index[repair_rg_index];
 
-        if(strcmp("hyre", repair_method) == 0)
+        if(strcmp("fastpr", repair_method) == 0)
             num_migrate_chunk = calMigrateChunkNum(num_repair_chunk); 
         else if(strcmp("random", repair_method) == 0)
             num_migrate_chunk = 0;
@@ -1175,7 +1175,7 @@ void Coordinator::doProcess(int soon_to_fail_node, int real_rg_num, char* repair
             stripe_id_rg[i] = _RepairGroup[repair_rg_id*_num_stripes_per_group + i];
             _RepairGroup[repair_rg_id*_num_stripes_per_group + i] = -1;
         }
-        //if((repair_count) == 0 && (strcmp(repair_method, "hyre")==0))
+        //if((repair_count) == 0 && (strcmp(repair_method, "fastpr")==0))
         //    break;
 
         migrate_count=0;
@@ -1273,7 +1273,7 @@ void Coordinator::doProcess(int soon_to_fail_node, int real_rg_num, char* repair
     free(_cur_matching_stripe);
     free(_mark);
 
-    if((strcmp(repair_method, "hyre") == 0 )||(strcmp(repair_method, "random")==0)){
+    if((strcmp(repair_method, "fastpr") == 0 )||(strcmp(repair_method, "random")==0)){
         free(_bipartite_matrix);
     free(_record_stripe_id);
         free(_node_belong);
@@ -1311,7 +1311,7 @@ int Coordinator::randomRepair(int soon_to_fail_node){
     _cur_matching_stripe=(int*)malloc(sizeof(int)*_rg_num); // recording the number of matching stripes in each rg
     _record_stripe_id=(int*)malloc(sizeof(int)*_num_stripes_per_group);
 
-    int ret = hyre_establish_rg(_num_rebuilt_chunks, soon_to_fail_node);
+    int ret = fastpr_establish_rg(_num_rebuilt_chunks, soon_to_fail_node);
 
     cout << "randomRepair RepairGroup: " << endl;
     for(i=0; i<ret; i++){

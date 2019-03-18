@@ -63,7 +63,7 @@ class Coordinator{
     int* _placement;
     int* _related_stripes;
 
-    // for hyre
+    // for fastpr
     int _num_stripes_per_group;
     string _repair_scenario;
 
@@ -92,7 +92,7 @@ class Coordinator{
     int hungary(int, int, int*, int, int*);
     int if_insert(int, int, int, int);
     int cal_stripes_in_rg(int, int*, int);
-    int hyre_establish_rg(int, int);
+    int fastpr_establish_rg(int, int);
     int replace(int, int, int, int*, int, int, int);
     int greedy_replacement(int, int, int);
 
@@ -112,7 +112,7 @@ class Coordinator{
     void doProcess(int, int, char*);
     void preprocess(int, int);
     void parseLog(void);
-    int HyReRepair(int);
+    int FastPRRepair(int);
     int randomRepair(int);
     int simpleMigration(int);
 };

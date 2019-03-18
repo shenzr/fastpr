@@ -9,7 +9,7 @@ using namespace std;
 int main(int argc, char** argv){
 
     if(argc != 4){
-        std::cout << "Err: ./HyReCoordinator #id_of_STF RepairMethod(hyre or random or migration) #num_of_repair_chunks!" << std::endl;
+        std::cout << "Err: ./FastPRCoordinator #id_of_STF RepairMethod(fastpr or random or migration) #num_of_repair_chunks!" << std::endl;
         exit(1);
     }
     
@@ -23,8 +23,8 @@ int main(int argc, char** argv){
     gettimeofday(&begin_tm, NULL);
 
     int real_rg_num = 0;
-    if(strcmp(argv[2], "hyre") == 0){    
-        real_rg_num = coord->HyReRepair(atoi(argv[1]));
+    if(strcmp(argv[2], "fastpr") == 0){    
+        real_rg_num = coord->FastPRRepair(atoi(argv[1]));
     }
     else if(strcmp(argv[2], "random") == 0){
         real_rg_num = coord->randomRepair(atoi(argv[1]));
@@ -33,7 +33,7 @@ int main(int argc, char** argv){
         real_rg_num = coord->simpleMigration(atoi(argv[1]));
     }
     else{
-        cout << "Input should be: hyre, random, migration" << endl;
+        cout << "Input should be: fastpr, random, migration" << endl;
         exit(1);
     }
 

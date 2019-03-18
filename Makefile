@@ -4,7 +4,7 @@ CFLAGS = -g -Wall -O2 -lm -lrt
 OBJ_DIR = obj
 UTIL_DIR = Util
 JERASURE_LIB = Jerasure/jerasure.o Jerasure/galois.o Jerasure/reed_sol.o Jerasure/cauchy.o 
-all: tinyxml2.o Config.o Coordinator.o PeerNode.o HyRePeerNode HyReCoordinator HyReHotStandby
+all: tinyxml2.o Config.o Coordinator.o PeerNode.o FastPRPeerNode FastPRCoordinator FastPRHotStandby
 
 tinyxml2.o: $(UTIL_DIR)/tinyxml2.cpp $(UTIL_DIR)/tinyxml2.h
 	$(CC) $(CFLAGS) -c $<  
@@ -21,14 +21,14 @@ Coordinator.o: Coordinator.cc Config.o Socket.o
 PeerNode.o: PeerNode.cc Socket.o
 	$(CC) $(CFLAGS) -c $<
  
-HyRePeerNode: HyRePeerNode.cc PeerNode.o Config.o Socket.o tinyxml2.o
+FastPRPeerNode: FastPRPeerNode.cc PeerNode.o Config.o Socket.o tinyxml2.o
 	$(CC) $(CFLAGS) -o $@ $^ $(CLIBS) $(JERASURE_LIB)
 
-HyReCoordinator: HyReCoordinator.cc Coordinator.o Config.o Socket.o tinyxml2.o
+FastPRCoordinator: FastPRCoordinator.cc Coordinator.o Config.o Socket.o tinyxml2.o
 	$(CC) $(CFLAGS) -o $@ $^ $(CLIBS) $(JERASURE_LIB)
 
-HyReHotStandby: HyReHotStandby.cc PeerNode.o Config.o Socket.o tinyxml2.o
+FastPRHotStandby: FastPRHotStandby.cc PeerNode.o Config.o Socket.o tinyxml2.o
 	$(CC) $(CFLAGS) -o $@ $^ $(CLIBS) $(JERASURE_LIB)
 
 clean:
-	rm HyReCoordinator HyRePeerNode HyReHotStandby *.o 
+	rm FastPRCoordinator FastPRPeerNode FastPRHotStandby *.o 

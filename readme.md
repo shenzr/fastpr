@@ -73,7 +73,7 @@ The following table shows an example architecture used in our testbed. The Coord
 
 
 
-We then configure the four configuration files under the folder of $HADOOP_HOME/etc/hadoop/
+We then configure the four configuration files under the folder of $HADOOP_HOME/etc/hadoop/. We show the configurations in our testbed as follows. 
 
 - core-site.xml 
 
@@ -99,8 +99,6 @@ We then configure the four configuration files under the folder of $HADOOP_HOME/
 - hdfs-site.xml
 
   ```xml
-    <?xml version="1.0" encoding="UTF-8"?>
-    <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
     <configuration>
     <property><name>dfs.replication</name><value>1</value></property>
     <property><name>dfs.blocksize</name><value>67108864</value></property>

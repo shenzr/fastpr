@@ -4,7 +4,7 @@ In this file, we will briefly introduce how to deploy and run the FastPR prototy
 
 ## 1. Preparation  
 
-#### 1.1. Installing necessary packages
+#### 1.1. Installing Necessary Packages
 
 - make and g++
 
@@ -56,7 +56,7 @@ In this file, we will briefly introduce how to deploy and run the FastPR prototy
 
 #### 1.3 Example Architecture 
 
-The following table shows an example architecture used in our testbed. The Coordinator in FastPR is collocated with the NameNode of Hadoop 3.1.1 and the Agent in FastPR is run on the DataNode of Hadoop 3.1.1. 
+The following table shows an example architecture used in our testbed. The Coordinator in FastPR is collocated with the NameNode of Hadoop 3.1.1 and the Agent in FastPR is run on the DataNode. 
 
 |   IP Address   | Roles in Hadoop | Roles in FastPR |
 | :------------: | :-------------: | :-------------: |
@@ -84,7 +84,7 @@ We then configure the four configuration files under the folder of $HADOOP_HOME/
   </configuration>
   ```
 
-- hadoop-env.sh 
+- hadoop-env.sh. You should replace the *_USER from "ncsgroup" in our example with your username. 
 
   ```shell
   export JAVA_HOME=/home/ncsgroup/java
@@ -210,7 +210,7 @@ The following table shows the configuration parameters used in our testbed.
 
 ## 3. Deployment of FastPR
 
-#### 3.1 Download and Install
+#### 3.1 Download and Installation
 
 We can deploy the FastPR as follows: 
 
@@ -238,7 +238,7 @@ We can deploy the FastPR as follows:
 | FastPRPeerNode    | It runs as an agent in our paper. It receives commands from the Coordinator, parses the commands to understand its role (i.e., sender or receiver), and does the jobs (e.g., read which data chunk and send it to which DataNode, or receive how many data chunks and the name of the repaired chunk) specified in the commands. |
 | FastPRHotStandby  | It also runs as an agent in our paper. It will dedicatedly receive data for repair. |
 
-- Fill in the information (including system information, and the information of erasure coding) in the metadata/config.xml (see our example in 2.2)
+- Fill in the information (including system information, and the information of erasure coding) in the metadata/config.xml (see our example in Section 2.2)
 
   
 
@@ -265,7 +265,7 @@ We can deploy the FastPR as follows:
 
 
 
-#### 3.3 An Example 
+#### 3.3 Example 
 
 For example, the following command is to repair the 50 chunks of the STF node (suppose node id is 0) using migration 
 

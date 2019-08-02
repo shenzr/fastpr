@@ -133,7 +133,7 @@ We then configure the four configuration files under the folder of $HADOOP_HOME/
   ```shell
   $ hadoop fs -mkdir /ec_test                      # create a folder named /ec_test 
   $ hdfs ec -listPolicies                          # list the policies supported by HDFS
-  $ hdfs ec -enablePlicy -policy RS-3-2-1024k      # enable an erasure coding policy 
+  $ hdfs ec -enablePolicy -policy RS-3-2-1024k      # enable an erasure coding policy 
   $ hdfs ec -setPolicy -path /ec_test -policy RS-3-2-1024k  # set ec policy to /ec_test
   $ hdfs ec -getPolicy -path /ec_test              # confirm the ec policy of /ec_test 
   $ hadoop fs -put testfile /ec_test               # write testfile to /ec_test

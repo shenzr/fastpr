@@ -12,7 +12,7 @@ AzureLRC::AzureLRC(vector<int> param) {
     for(int i=0; i<_k; i++) 
         _complete_matrix[i*_k+i]=1;
 
-    string enc_file_name = string("conf/azurelrcEncMat_") + to_string(_n) + string("_") + to_string(_k) + "_" + to_string(_l) + "_" + to_string(_g); 
+    string enc_file_name = string("metadata/azurelrcEncMat_") + to_string(_n) + string("_") + to_string(_k) + "_" + to_string(_l) + "_" + to_string(_g); 
     ifstream readin(enc_file_name);
     for(int i=0; i<_n-_k; i++)                                                                                                                                                                                                                                                
         for(int j=0; j<_k; j++)

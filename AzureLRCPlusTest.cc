@@ -28,7 +28,7 @@ int main(int argc, char** argv){
 
     int stfnode = 0;
     
-    Config* conf = new Config("conf/config.xml");
+    Config* conf = new Config("metadata/config.xml");
    
     Coordinator *coord = new Coordinator(conf);
     coord->getLostInfo(stfnode);

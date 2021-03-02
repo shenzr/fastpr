@@ -38,7 +38,7 @@ void Coordinator::initPlacement() {
 }
 
 void Coordinator::readPlacementFromFile() {
-    string placefile = "conf/placement";
+    string placefile = "metadata/placement";
     ifstream file(placefile);
     string line;
     int stripeid = 0;

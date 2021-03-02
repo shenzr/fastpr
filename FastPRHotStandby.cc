@@ -5,7 +5,7 @@
 
 int main(int argc, char**argv){
     
-    Config* conf = new Config("conf/config.xml");
+    Config* conf = new Config("metadata/config.xml");
     Socket* sock = new Socket();
     PeerNode* pn = new PeerNode(conf);
 

@@ -1,34 +1,50 @@
 CC = g++ -std=c++11
-CLIBS = -pthread 
-CFLAGS = -g -Wall -O2 -lm -lrt
+JCC = gcc
+CLIBS = -pthread -lgf_complete
+CFLAGS = -O3 -mmmx -msse -mpclmul -msse4.2 -DINTEL_SSE4 -mavx
+
+SRC_DIR = ./
+UTIL_SRC_DIR = $(SRC_DIR)/Util
+
+CC_FILES = $(filter-out $(SRC_DIR)/RSTest.cc $(SRC_DIR)/FastPRPeerNode.cc $(SRC_DIR)/FastPRHotStandby.cc $(SRC_DIR)/AzureLRCTest.cc $(SRC_DIR)/AzureLRCPlusTest.cc, \
+		   $(wildcard $(SRC_DIR)/*.cc))
+UTIL_CC_FILES = $(wildcard $(UTIL_SRC_DIR)/*.cpp)
+JERASURE_C_FILES = $(wildcard $(UTIL_SRC_DIR)/*.c)
+
 OBJ_DIR = obj
-UTIL_DIR = Util
-JERASURE_LIB = Jerasure/jerasure.o Jerasure/galois.o Jerasure/reed_sol.o Jerasure/cauchy.o 
-all: tinyxml2.o Config.o Coordinator.o PeerNode.o FastPRPeerNode FastPRCoordinator FastPRHotStandby
+OBJ_FILES = $(addprefix $(OBJ_DIR)/CC_, $(notdir $(CC_FILES:.cc=.o)))
+UTIL_OBJ_FILES = $(addprefix $(OBJ_DIR)/UTIL_, $(notdir $(UTIL_CC_FILES:.cpp=.o)))
+JERASURE_OBJ_FILES = $(addprefix $(OBJ_DIR)/J_, $(notdir $(JERASURE_C_FILES:.c=.o)))
 
-tinyxml2.o: $(UTIL_DIR)/tinyxml2.cpp $(UTIL_DIR)/tinyxml2.h
-	$(CC) $(CFLAGS) -c $<  
+O_FILES := $(OBJ_FILES) $(UTIL_OBJ_FILES) $(JERASURE_OBJ_FILES)
 
-Config.o: Config.cc tinyxml2.o
-	$(CC) $(CFLAGS) -c $<
+all : directories RSTest FastPRPeerNode FastPRHotStandby AzureLRCTest
 
-Socket.o: Socket.cc 
-	$(CC) $(CFLAGS) -c $<
+directories : $(OBJ_DIR)
 
-Coordinator.o: Coordinator.cc Config.o Socket.o
-	$(CC) $(CFLAGS) -c $<
+$(OBJ_DIR) :
+	mkdir -p $(OBJ_DIR)
 
-PeerNode.o: PeerNode.cc Socket.o
-	$(CC) $(CFLAGS) -c $<
- 
-FastPRPeerNode: FastPRPeerNode.cc PeerNode.o Config.o Socket.o tinyxml2.o
-	$(CC) $(CFLAGS) -o $@ $^ $(CLIBS) $(JERASURE_LIB)
+RSTest : $(SRC_DIR)/RSTest.cc $(O_FILES)
+	$(CC) $(CFLAGS) -o $@ $^ $(CLIBS)
 
-FastPRCoordinator: FastPRCoordinator.cc Coordinator.o Config.o Socket.o tinyxml2.o
-	$(CC) $(CFLAGS) -o $@ $^ $(CLIBS) $(JERASURE_LIB)
+FastPRPeerNode : $(SRC_DIR)/FastPRPeerNode.cc $(O_FILES)
+	$(CC) $(CFLAGS) -o $@ $^ $(CLIBS)
 
-FastPRHotStandby: FastPRHotStandby.cc PeerNode.o Config.o Socket.o tinyxml2.o
-	$(CC) $(CFLAGS) -o $@ $^ $(CLIBS) $(JERASURE_LIB)
+FastPRHotStandby : $(SRC_DIR)/FastPRHotStandby.cc $(O_FILES)
+	$(CC) $(CFLAGS) -o $@ $^ $(CLIBS)
 
-clean:
-	rm FastPRCoordinator FastPRPeerNode FastPRHotStandby *.o 
+AzureLRCTest : $(SRC_DIR)/AzureLRCTest.cc $(O_FILES)
+	$(CC) $(CFLAGS) -o $@ $^ $(CLIBS)
+
+$(OBJ_DIR)/CC_%.o : $(SRC_DIR)/%.cc $(SRC_DIR)/%.hh
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+$(OBJ_DIR)/UTIL_%.o : $(UTIL_SRC_DIR)/%.cpp $(UTIL_SRC_DIR)/%.h
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+$(OBJ_DIR)/J_%.o : $(UTIL_SRC_DIR)/%.c $(UTIL_SRC_DIR)/%.h
+	$(JCC) $(CFLAGS) -o $@ -c $<
+
+clean :
+	rm -f RSTest FastPRPeerNode FastPRHotStandby AzureLRCTest obj/*

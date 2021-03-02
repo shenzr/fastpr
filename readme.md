@@ -371,9 +371,9 @@ Then we run the code to generate a stripe of chunks encoded by AzureLRC(10,6,3).
   $ ./createdata 64 10 6 3
   ```
 
-Finally, we run the script to distribute chunks. The following command generate 50 stripes and distribute
-all chunks to all the peer nodes. Supposing the first peer node (192.168.10.52 in our example) is the soon
-to fail node. After data distribution, there are 50 chunks in the soon to fail node, and 40 chunks out of 
+Finally, we run the script to distribute chunks. The following command generates 50 stripes and distribute
+all chunks to all the peer nodes. Let the first peer node (192.168.10.52 in our example) be the soon
+to fail node. After the data distribution, there will be 50 chunks in the soon to fail node, where 40 chunks out of 
 the total 50 chunks are data chunks or local parity chunks.
   ```shell
   $ cd ../script; python dist.py 50 0.8
@@ -388,7 +388,7 @@ We run the following script to start the standalone system of FastPR with scatte
 
 To repair all the chunks in the soon to fail node:
   ```shell
-  $ ./AzureLRCTest fastpr sct
+  $ ./AzureLRCTest fastpr scatteredRepair
   ```
 
 For hot-standby repair, we start the system with:
@@ -398,5 +398,5 @@ For hot-standby repair, we start the system with:
 
 To repair all the chunks in the soon to fail node:
   ```shell
-  $ ./AzureLRCTest fastpr hsb
+  $ ./AzureLRCTest fastpr hotStandbyRepair
   ```

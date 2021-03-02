@@ -13,7 +13,7 @@ RATIOK=float(sys.argv[2])
 filepath=os.path.realpath(__file__)
 script_dir = os.path.dirname(os.path.normpath(filepath))
 home_dir = os.path.dirname(os.path.normpath(script_dir))
-conf_dir = home_dir+"/conf"
+conf_dir = home_dir+"/metadata"
 CONF = conf_dir+"/config.xml"
 
 f = open(CONF)
@@ -182,7 +182,7 @@ for stripeidx in range(STRIPENUM):
     stripeinfo += "\n"
     stripedict.append(stripeinfo)
 
-f=open(home_dir+"/conf/placement", "w")
+f=open(home_dir+"/metadata/placement", "w")
 for line in stripedict:
     f.write(line)
 f.close()

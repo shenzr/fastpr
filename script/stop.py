@@ -3,7 +3,7 @@ import os
 filepath=os.path.realpath(__file__)
 script_dir = os.path.dirname(os.path.normpath(filepath))
 home_dir = os.path.dirname(os.path.normpath(script_dir))
-conf_dir = home_dir+"/conf"
+conf_dir = home_dir+"/metadata"
 CONF = conf_dir+"/config.xml"
 
 f = open(CONF)

@@ -6,6 +6,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 #include <sys/socket.h>
 #include <sys/time.h>
@@ -53,6 +54,15 @@ class Config{
     std::vector<unsigned int> _hotStandbyNodeIPs;
     unsigned int _coordinatorIP;
     unsigned int _localIP;
+
+    std::unordered_map<unsigned int, int> _peerIp2Idx;
+
+    // xiaolu add for lrc
+    std::string _code_type;
+    int _ecR;
+    int _ecL;
+    int _ecG;
+    std::string _fs_type;
 
     // functions
     Config(std::string confFile);

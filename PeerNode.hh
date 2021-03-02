@@ -18,10 +18,8 @@
 #include "Config.hh"
 
 extern "C"{
-#include "Jerasure/jerasure.h"
-#include "Jerasure/galois.h"
-#include "Jerasure/reed_sol.h"
-#include "Jerasure/cauchy.h"
+#include "Util/jerasure.h"
+#include "Util/galois.h"
 }
 
 #define DEBUG_PEERNODE true
@@ -56,5 +54,8 @@ class PeerNode{
     int getVal(string);
     void commitACK(void);
     void initChar(char**, int, int);
+
+    void hsbAggrDataWriteData(string chunk_name, char* recv_buff, int recv_chunk_num, size_t recv_size, int* mark_recv, int flag);
+    void parseHSBCommand(char* command, char* role, char* blk_name, char* stripe_name, char* coeff, char* next_ip, char* sender_ips);
 };
 #endif

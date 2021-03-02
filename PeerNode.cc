@@ -44,6 +44,39 @@ void PeerNode::parseCommand(char* command, char* role, char* blk_name, char* str
     }
 }
 
+void PeerNode::parseHSBCommand(char* command, char* role, char* blk_name, char* stripe_name, char* coeff, char* next_ip, char* sender_ips){
+
+    int start = 0;
+    // read the first two bytes to judge the role
+    strncpy(role, command + start, sizeof(char)*ROLE_LEN); start += ROLE_LEN;
+
+    int num = _ecK;
+    if (strcmp(role, "HR") == 0) {
+        char sizestr[4];
+        strncpy(sizestr, command + start, sizeof(char)*4); start += 4;
+        int len = atoi(sizestr);
+        num = (len+2-CMD_LEN)/10;
+    }
+
+    strncpy(blk_name, command + start, sizeof(char)*BLK_NAME_LEN); start += BLK_NAME_LEN;
+    strncpy(stripe_name, command + start, sizeof(char)*STRIPE_NAME_LEN); start += STRIPE_NAME_LEN;
+    strncpy(coeff, command + start, sizeof(char)*COEFF_LEN); start += COEFF_LEN;
+    strncpy(next_ip, command + start, sizeof(char)*NEXT_IP_LEN); start += NEXT_IP_LEN;
+
+    role[ROLE_LEN] = '\0';
+    blk_name[BLK_NAME_LEN] = '\0';
+    stripe_name[STRIPE_NAME_LEN] = '\0';
+    coeff[COEFF_LEN] = '\0';
+    next_ip[NEXT_IP_LEN] = '\0';
+
+    if(_repair_scenario == "hotStandbyRepair" && (strcmp(role, "HR") == 0)){
+        //strncpy(sender_ips, command + ROLE_LEN + BLK_NAME_LEN + STRIPE_NAME_LEN + COEFF_LEN + NEXT_IP_LEN, sizeof(char)*_ecK*NEXT_IP_LEN);
+        strncpy(sender_ips, command + start, sizeof(char)*num*NEXT_IP_LEN);
+        //sender_ips[_ecK*NEXT_IP_LEN] = '\0';
+        sender_ips[num*NEXT_IP_LEN] = '\0';
+    }
+}
+
 // transform a ip address to string
 string PeerNode::ip2Str(unsigned int ip){
 
@@ -296,6 +329,88 @@ void PeerNode::writeData(string chunk_name, size_t offset, char* write_buff, siz
 
     gettimeofday(&ed_tm, NULL);
     printf("writeData time = %.2lf\n", ed_tm.tv_sec-bg_tm.tv_sec+(ed_tm.tv_usec-bg_tm.tv_usec)*1.0/1000000);
+}
+
+void PeerNode::hsbAggrDataWriteData(string chunk_name, char* recv_buff, int recv_chunk_num, size_t recv_size, int* mark_recv, int flag){
+    //cout << "XL:chunk_name = " << chunk_name << endl;
+    //cout << "XL:recv_chunk_num = " << recv_chunk_num << endl;
+    //cout << "XL:recv_size = " << recv_size << endl;
+
+    struct timeval bg_tm, ed_tm;
+    gettimeofday(&bg_tm, NULL);
+
+    // we have to differentiate data chunk and metadata chunk
+    if((recv_chunk_num >= 1) && (recv_size == _chunk_size)){
+
+        size_t ret;
+        string abs_lost_chunk_path = _data_path + string("/subdir0/") + chunk_name;
+        //cout << "XL:chunkpath = " << abs_lost_chunk_path << endl;
+        // string abs_lost_chunk_path = string("/home/ncsgroup/zrshen/HyRe/") + chunk_name;
+
+        int fd = open((char*)abs_lost_chunk_path.c_str(), O_RDWR | O_CREAT | O_DIRECT, 0755);
+
+        char* repair_buff;
+        int tmp_ret = posix_memalign((void**)&repair_buff, getpagesize(), sizeof(char)*_packet_size);
+        if(tmp_ret){
+            cout << "ERR: posix_memalign" << endl;
+            exit(1);         
+        }
+        char* tmp_pos;
+        Socket* sock = new Socket();
+
+        int packet_num = _chunk_size/_packet_size;
+        int sum = 0;
+    
+        for(int i=0; i<packet_num; i++){
+             sum = 0;
+             for(int j=0; j<recv_chunk_num; j++)
+                 if(mark_recv[j*packet_num+i])
+                     sum++;
+             
+             //cout << "i = " << i << ", sum = " << sum << endl;
+             // if the first packet of all the chunks is not received
+             if(sum!=recv_chunk_num){
+                 i--;
+                 sleep(0.001);
+             }
+             // aggregate the packets and write the packet            
+             else {
+                 tmp_pos = sock->hsbAggrData(recv_buff, repair_buff, recv_chunk_num, recv_size, i, _packet_size);
+                 //writeData(chunk_name, i*_packet_size, tmp_pos, _packet_size, flag);               
+
+                 //cout << "offset = " << i * _packet_size << endl;
+                 lseek(fd, i*_packet_size, SEEK_SET);
+                 //ret = write(fd, tmp_pos, _packet_size);
+                 ret = write(fd, repair_buff, _packet_size);
+                 if(ret!=_packet_size)
+                     perror("write error");
+                 
+                 //cout << "aggregate: mark_recv, check packet_id = " << i << endl;
+                 //for(int p=0; p<recv_chunk_num; p++){
+                 //    for(int q=0; q<packet_num; q++)
+                 //        printf("%d ", mark_recv[p*packet_num+q]);
+                 //printf("\n");
+                 //}    
+             }
+        }
+        
+        free(repair_buff);
+        close(fd);
+        delete sock;
+
+        // remove the file after write completes 
+        //if(remove((char*)abs_lost_chunk_path.c_str()) != 0) --------> mark at Mar. 06
+            //perror("remove file"); --------------> mark at Mar.06
+    }
+
+    // we have to further consider the writes for multiple metadata chunks
+    else if(recv_size!=_chunk_size){
+
+        writeData(chunk_name, 0, recv_buff, recv_size, flag);
+ 
+    }
+   gettimeofday(&ed_tm, NULL);
+   printf("write_data_time = %.2lf\n", ed_tm.tv_sec-bg_tm.tv_sec+(ed_tm.tv_usec-bg_tm.tv_usec)*1.0/1000000);
 }
 
 // aggregate the data and write the data

@@ -138,6 +138,75 @@ char* Socket::recvCommand(int port_num, size_t unit_size_sr, size_t hsb_cmd_len)
     return recv_cmd;
 }
 
+char* Socket::recvHSBCommand(int port_num, size_t unit_size_sr, int* hsb_cmd_len){
+
+    int max_conn = 100;
+    int connfd;
+    int cmd_num;
+    int ret;
+    size_t unit_size;
+    char tag[3];
+    char role[3];
+
+    // init the server socket info
+    int server_socket = initServer(port_num);
+    struct sockaddr_in sender_addr;
+    socklen_t length = sizeof(sender_addr);
+
+    if(listen(server_socket, max_conn) == -1)
+        perror("listen fails");
+
+    connfd = accept(server_socket, (struct sockaddr*)&sender_addr, &length);
+    cout  << "--recv_connection_from " << inet_ntoa(sender_addr.sin_addr) << endl;
+
+    // read the first three bytes
+    ret = read(connfd, &tag, sizeof(char)*3);
+    if(ret!=3){
+        cout << "ERR: read cmd header" << endl;
+        return NULL;
+    }
+    cmd_num = tag[0]-'0';
+
+    role[0] = tag[1];
+    role[1] = tag[2];
+    role[2] = '\0';
+
+    if(strcmp(role,"RS")!=0 && strcmp(role,"RR")!=0 && strcmp(role, "MS")!=0 && strcmp(role, "MR")!=0 && strcmp(role, "HS")!=0 && strcmp(role, "HR")!=0 && strcmp(role,"TS")!=0 && strcmp(role, "TR")!=0)
+        return NULL;
+
+    char sizestr[4];
+    if (strcmp(role, "HR") == 0) {
+        // read 4 more bytes
+        ret = read(connfd, &sizestr, sizeof(char)*4);
+        *hsb_cmd_len = atoi(sizestr) + 4 + 2;
+        unit_size = *hsb_cmd_len;
+    } else
+        unit_size = unit_size_sr;
+
+    char* recv_cmd = (char*)malloc(sizeof(char)*(unit_size*cmd_num+1));
+    int start = 0;
+    memcpy(recv_cmd + start, role, sizeof(char)*2); start += 2;
+    if (strcmp(role, "HR") == 0) {
+        memcpy(recv_cmd + start, sizestr, sizeof(char)*4); start += 4;
+    }
+
+    while (start < unit_size * cmd_num)
+        start += read(connfd, recv_cmd+start, unit_size*cmd_num - start);
+
+//    size_t recv_len=2; // have read the role (2bytes) of the first command
+//    while(recv_len < unit_size*cmd_num)
+//        recv_len += read(connfd, recv_cmd+recv_len, unit_size*cmd_num - recv_len);
+
+    recv_cmd[unit_size*cmd_num] = '\0';
+
+    cout << "recv_cmd = " << recv_cmd << endl;
+    
+    close(connfd);
+    close(server_socket);
+
+    return recv_cmd;
+}
+
 void Socket::recvData(int chunk_size, int conn, char* buff, int index, int* mark_recv, int packet_num, int packet_size){
 
     int recv_len=0;
@@ -257,6 +326,21 @@ char* Socket::aggrData(char* total_recv_data, char* repaired_data, int num_chunk
         tmp = mid_result;
         mid_result = repaired_data;
         repaired_data = tmp;      
+    }
+
+    return mid_result;
+}
+
+char* Socket::hsbAggrData(char* total_recv_data, char* repaired_data, int num_chunks, int chunk_size, int packet_id, int packet_size){
+
+    int i;
+    char* mid_result = total_recv_data + packet_id*packet_size;
+    char* tmp;
+
+    for(i=1; i<num_chunks; i++){
+        
+        calDelta(repaired_data, mid_result, total_recv_data+i*chunk_size+packet_id*packet_size, packet_size);
+        mid_result = repaired_data;
     }
 
     return mid_result;

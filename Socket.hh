@@ -36,6 +36,9 @@ class Socket{
     void paraRecvData(int, int, char*, int, int*, int, int, int, string);
     char* aggrData(char*, char*, int, int, int, int);
     void calDelta(char*, char*, char*, int); 
+
+    char* hsbAggrData(char* total_recv_data, char* repaired_data, int num_chunks, int chunk_size, int packet_id, int packet_size);
+    char* recvHSBCommand(int port_num, size_t unit_size_sr, int* hsb_cmd_len);
 };
 
 #endif

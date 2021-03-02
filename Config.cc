@@ -10,11 +10,20 @@ Config::Config(std::string confFile){
         
         XMLElement* ele = element->FirstChildElement("name");
         std::string attName = ele->GetText();
-        if(attName == "erasure_code_k")
+        if (attName == "code_type")
+            _code_type = std::string(ele-> NextSiblingElement("value")-> GetText());
+
+        else if (attName == "fs_type")
+            _fs_type = std::string(ele-> NextSiblingElement("value")-> GetText());
+
+        else if(attName == "erasure_code_k")
             _ecK = std::stoi(ele-> NextSiblingElement("value")-> GetText());
 
         else if (attName == "erasure_code_n") 
             _ecN = std::stoi(ele-> NextSiblingElement("value")-> GetText());
+
+        else if (attName == "erasure_code_r")
+            _ecL = std::stoi(ele-> NextSiblingElement("value")-> GetText());
         
         else if (attName == "peer_node_num") 
             _peer_node_num = std::stoi(ele-> NextSiblingElement("value")-> GetText());
@@ -68,15 +77,23 @@ Config::Config(std::string confFile){
                 int pos = tempstr.find("/");
                 int len = tempstr.length();
                 std::string ip = tempstr.substr(pos+1, len-pos-1);
-                std::cout << "HotStandby IP: "<< ip << std::endl;
+                //std::cout << "HotStandby IP: "<< ip << std::endl;
                 //std::cout << "pos = " << pos << " len = "<< len << std::endl;
                 //std::cout << "- %d" << inet_addr(ip.c_str()) << std::endl;
                 _hotStandbyNodeIPs.push_back(inet_addr(ip.c_str()));
                
             }
             // sort(_peerNodeIPs.begin(), _peerNodeIPs.end()); 
+            
+            for (int i=0; i<_peerNodeIPs.size(); i++) {
+                unsigned int ip = _peerNodeIPs[i];
+                _peerIp2Idx[ip] = i;
+            }
         }
     }
+
+    _ecL = _ecK / _ecR;
+    _ecG = _ecN - _ecK - _ecL;
 }
 
 void Config::display(){

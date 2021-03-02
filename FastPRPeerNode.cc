@@ -5,7 +5,7 @@
 
 int main(int argc, char**argv){
    
-    Config* conf = new Config("metadata/config.xml");
+    Config* conf = new Config("conf/config.xml");
     PeerNode* pn = new PeerNode(conf);
     Socket* sock = new Socket();
     thread doThreads[2];
@@ -23,8 +23,8 @@ int main(int argc, char**argv){
     while(1){
         cout << "listen command ...." << endl;
         recv_cmd = sock->recvCommand(PN_RECV_CMD_PORT, CMD_LEN, -1);
-	if(recv_cmd == NULL)
-	    continue;
+        if(recv_cmd == NULL)
+            continue;
 
         index = 0; 
         send_flag = 0;
@@ -32,8 +32,8 @@ int main(int argc, char**argv){
         cmd_id = 0;
 
         num_cmds = string(recv_cmd).length()/CMD_LEN;     
-	string chunk_name_str[num_cmds];
-	string stripe_name_str[num_cmds];
+        string chunk_name_str[num_cmds];
+        string stripe_name_str[num_cmds];
 
         char** role = (char**)malloc(sizeof(char*)*num_cmds);
         char** chunk_name = (char**)malloc(sizeof(char*)*num_cmds);
@@ -59,7 +59,7 @@ int main(int argc, char**argv){
             pn->parseCommand(one_cmd, role[cmd_id], chunk_name[cmd_id], stripe_name[cmd_id], coeff[cmd_id], next_ip[cmd_id], NULL);    
         
             cout << "====== recv cmd ======" << endl; 
-	    cout << "cmd_id = " << cmd_id << endl;
+            cout << "cmd_id = " << cmd_id << endl;
             cout << role[cmd_id] << endl;
             cout << chunk_name[cmd_id] << endl;
             cout << stripe_name[cmd_id] << endl;
@@ -84,13 +84,15 @@ int main(int argc, char**argv){
             // if it is the receiver of the reconstruction
             else if(strcmp(role[cmd_id], "RR") == 0){
                 recv_flag = 1;
-                doThreads[0] = thread(&PeerNode::paraRecvData, pn, conf->_ecK, chunk_name_str[cmd_id], DATA_CHUNK);
+                int recv_chunk_num = atoi(coeff[cmd_id]);
+                //doThreads[0] = thread(&PeerNode::paraRecvData, pn, conf->_ecK, chunk_name_str[cmd_id], DATA_CHUNK);
+                doThreads[0] = thread(&PeerNode::paraRecvData, pn, recv_chunk_num, chunk_name_str[cmd_id], DATA_CHUNK);
             }
 
             // if it is a sender of the reconstruction, then send the data 
             else if(strcmp(role[cmd_id], "RS") == 0){
                 send_flag = 1;
-		next_ip_str = pn->ip2Str(atoi(next_ip[cmd_id])); 
+                next_ip_str = pn->ip2Str(atoi(next_ip[cmd_id])); 
                 doThreads[1] = thread(&PeerNode::sendData, pn, chunk_name_str[cmd_id], atoi(coeff[cmd_id]), (char*)next_ip_str.c_str(), DATA_CHUNK);
             }
 
@@ -119,37 +121,35 @@ int main(int argc, char**argv){
                     pn->paraRecvData(1, chunk_meta_name, META_CHUNK);
                 }
             }
-	    cmd_id ++;
+            cmd_id ++;
         }   
 
-    // execute the multiple threads
-    if(recv_flag)
-        doThreads[0].join();
-    if(send_flag)
-        doThreads[1].join(); 
-
-    if((strcmp(role[0], "TR") == 0) || (strcmp(role[0], "MR") == 0) || (strcmp(role[0], "RR") == 0) || (recv_flag == 1))
-        pn->commitACK();
-
-    free(recv_cmd);
-
-    for(int i=0; i<num_cmds; i++){
-	free(role[i]);
-	free(stripe_name[i]);
-	free(chunk_name[i]);
-	free(next_ip[i]);
-	free(coeff[i]);
-    }
-    gettimeofday(&ed_tm, NULL);
-    cout << "process one round time = " << ed_tm.tv_sec - bg_tm.tv_sec + (ed_tm.tv_usec - bg_tm.tv_usec)*1.0/1000000 << endl;
-
-    free(role);
-    free(stripe_name);
-    free(chunk_name);
-    free(coeff);
-    free(next_ip);
-
-    
+        // execute the multiple threads
+        if(recv_flag)
+            doThreads[0].join();
+        if(send_flag)
+            doThreads[1].join(); 
+        
+        if((strcmp(role[0], "TR") == 0) || (strcmp(role[0], "MR") == 0) || (strcmp(role[0], "RR") == 0) || (recv_flag == 1))
+            pn->commitACK();
+        
+        free(recv_cmd);
+        
+        for(int i=0; i<num_cmds; i++){
+            free(role[i]);
+            free(stripe_name[i]);
+            free(chunk_name[i]);
+            free(next_ip[i]);
+            free(coeff[i]);
+        }
+        gettimeofday(&ed_tm, NULL);
+        cout << "process one round time = " << ed_tm.tv_sec - bg_tm.tv_sec + (ed_tm.tv_usec - bg_tm.tv_usec)*1.0/1000000 << endl;
+        
+        free(role);
+        free(stripe_name);
+        free(chunk_name);
+        free(coeff);
+        free(next_ip);
     }
 
     free(one_cmd);

@@ -5,7 +5,7 @@
 
 int main(int argc, char**argv){
     
-    Config* conf = new Config("metadata/config.xml");
+    Config* conf = new Config("conf/config.xml");
     Socket* sock = new Socket();
     PeerNode* pn = new PeerNode(conf);
 
@@ -43,17 +43,22 @@ int main(int argc, char**argv){
     int* connfd = NULL;
     int server_socket = -1; 
 
+    int repairk = ecK;
+
     map<string, int> senderIP2Conn;
     while(1){
 
         cout << "hsb: listen command ..." << endl;
-        recv_cmd = sock->recvCommand(PN_RECV_CMD_PORT, CMD_LEN, hsb_cmd_len);
-	if(recv_cmd == NULL)
+        //recv_cmd = sock->recvCommand(PN_RECV_CMD_PORT, CMD_LEN, hsb_cmd_len);
+        recv_cmd = sock->recvHSBCommand(PN_RECV_CMD_PORT, CMD_LEN, &hsb_cmd_len);
+	    if(recv_cmd == NULL)
             continue;
 
         char tmp_role[ROLE_LEN+1];
         strncpy(tmp_role, recv_cmd, sizeof(char)*ROLE_LEN);
         tmp_role[ROLE_LEN] = '\0';
+
+        cout << "111111111111111111111111111" << endl;
 
         if(strcmp(tmp_role, "HR") == 0){
 
@@ -62,7 +67,11 @@ int main(int argc, char**argv){
 
             recv_cmd_len = hsb_cmd_len;
             num_repair_chunk = string(recv_cmd).length()/hsb_cmd_len;
-            conn_num = num_repair_chunk*ecK;
+            
+            //conn_num = num_repair_chunk*ecK;
+            repairk = (hsb_cmd_len - 4 - CMD_LEN) / 10;
+            conn_num = num_repair_chunk * repairk;
+            cout << "HR:conn_num = " << conn_num << endl;
 
             connfd = (int*)malloc(sizeof(int)*conn_num);
             server_socket = sock->initServer(PN_RECV_DATA_PORT);
@@ -91,20 +100,23 @@ int main(int argc, char**argv){
         }
 
         else recv_cmd_len = CMD_LEN;
+        
+        cout << "sockets in map:" << endl;
+        map<string, int>::iterator it;
+        for(it=senderIP2Conn.begin(); it!=senderIP2Conn.end(); it++){
+            cout<< it->first << " " << it->second << endl;
+        }
 
-	cout << "sockets in map:" << endl;
-	map<string, int>::iterator it;
-	for(it=senderIP2Conn.begin(); it!=senderIP2Conn.end(); it++){
-		cout<< it->first << " " << it->second << endl;
-	}
         // process the cmds
         index = 0;
         while(recv_cmd[index]!=0){
+            cout << "!!!!!!!!!!!!!!!!!!!! " << endl;
 
             memcpy(one_cmd, recv_cmd+index, recv_cmd_len);
             index += recv_cmd_len;
         
-            pn->parseCommand(one_cmd, role, chunk_name, stripe_name, coeff, next_ip, sender_ip);
+            //pn->parseCommand(one_cmd, role, chunk_name, stripe_name, coeff, next_ip, sender_ip);
+            pn->parseHSBCommand(one_cmd, role, chunk_name, stripe_name, coeff, next_ip, sender_ip);
             cout << "recv cmd ..." << endl;
             cout << "role = " << role << endl;
             cout << "chunk_name = " << chunk_name << endl;
@@ -113,27 +125,31 @@ int main(int argc, char**argv){
             cout << "next_ip = " << next_ip << endl;
             
             if(strcmp(role, "HR") == 0){
-         
-                memset(mark_recv, 0, sizeof(int)*ecK*packet_num);
+          
+                //memset(mark_recv, 0, sizeof(int)*ecK*packet_num);
+                memset(mark_recv, 0, sizeof(int)*repairk*packet_num);
        
-                for(int i=0; i<ecK; i++){
+                //for(int i=0; i<ecK; i++){
+                for(int i=0; i<repairk; i++){
                     // get the sender ip
                     strncpy(cur_sender_ip, sender_ip+i*NEXT_IP_LEN, NEXT_IP_LEN);
                     string ipstr = string(cur_sender_ip);
                     string ip_substr = ipstr.substr(0,NEXT_IP_LEN);
                     cur_conn[i] = senderIP2Conn[ip_substr];
-                    // cout << "ip_substr = " << ip_substr << endl; 
-                    // printf("connfd[%d] = %d \n", i, cur_conn[i]);
+                    cout << "ip_substr = " << ip_substr << endl; 
+                    printf("connfd[%d] = %d \n", i, cur_conn[i]);
                     // use a thread to read the data 
                     dothrds[i] = thread(&Socket::recvData, sock, chunk_size, cur_conn[i], total_recv_data+i*chunk_size, i, mark_recv, packet_num, packet_size);
 
                 }
 
                 // use a thread to aggregate and write the data 
-                dothrds[ecK] = thread(&PeerNode::aggrDataWriteData, pn, chunk_name, total_recv_data, ecK, chunk_size, mark_recv, DATA_CHUNK);
+                //dothrds[ecK] = thread(&PeerNode::hsbAggrDataWriteData, pn, chunk_name, total_recv_data, ecK, chunk_size, mark_recv, DATA_CHUNK);
+                dothrds[repairk] = thread(&PeerNode::hsbAggrDataWriteData, pn, chunk_name, total_recv_data, repairk, chunk_size, mark_recv, DATA_CHUNK);
 
                 // join the threads
-                for(int i=0; i<ecK+1; i++)
+                //for(int i=0; i<ecK+1; i++)
+                for(int i=0; i<repairk+1; i++)
                     dothrds[i].join();
             }
             // if it is a command to write the metadata
@@ -143,6 +159,10 @@ int main(int argc, char**argv){
                 chunk_meta_name = string(chunk_name) + string("_") + string(stripe_name) + string(".meta");
                 // sequential write the metadata
                 pn->paraRecvData(1, chunk_meta_name, META_CHUNK); 
+            }
+            // MR
+            else if((strcmp(role, "MR") == 0)){
+                pn->paraRecvData(1, chunk_name, DATA_CHUNK);
             }
         }
 

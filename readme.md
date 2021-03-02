@@ -302,7 +302,7 @@ When the program runs, the coordinator will find a DataNode to store each repair
 
 #### 4.1 Configuration
 
-Here are parameters for the standalone .
+Here are parameters for the standalone deployment of FastPR for Azure-LRC.
 
 | Parameters          | Physical meanings                                            |
 | ------------------- | ------------------------------------------------------------ |
@@ -369,7 +369,7 @@ We first compile the code to generate a stripe.
 Then we run the code to generate a stripe of chunks encoded by Azure-LRC(10,6,3). Each chunk is 64MiB.
   ```shell
   $ ./createdata 64 10 6 3
-  ```shell
+  ```
 
 Finally, we run the script to distribute chunks. The following command generate 50 stripes and distribute
 all chunks to all the peer nodes. Supposing the first peer node (192.168.10.52 in our example) is the soon

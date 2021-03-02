@@ -1,4 +1,12 @@
-In this file, we will briefly introduce how to deploy and run the FastPR prototype. More design details can be referred to our paper "Fast Predictive Repair in Erasure-Coded Storage" which appears at the 49th IEEE/IFIP International Conference on Dependable Systems and Networks (IEEE/IFIP DSN'19). If you have any question about the deployment, please feel free to contact me at zhirong.shen2601@gmail.com 
+In this file, we will briefly introduce how to deploy and run the FastPR
+prototype. More design details can be referred to our paper "Fast Predictive
+Repair in Erasure-Coded Storage" which appears at the 49th IEEE/IFIP
+International Conference on Dependable Systems and Networks (IEEE/IFIP DSN'19).
+If you have any question about the deployment, please feel free to contact me at
+zhirong.shen2601@gmail.com 
+
+We further extend the idea of FastPR to Azure's Local Reconstruction Codes
+(Azure-LRC). Please refer to section 4 in this file for Azure-LRC deployment.
 
 
 
@@ -290,4 +298,105 @@ $ ./FastPRCoordinator 0 fastpr 50      # for FastPR
 When the program runs, the coordinator will find a DataNode to store each repaired data chunk and its metadata chunk. The repaired data chunks and their metadata chunks are stored at the path "$local_data_path/subdir0" of the DataNode ($local_data_path is specified in the config.xml file (see Section 2.1)). 
 
 
+## 4. Azure-LRC deployment
 
+#### 4.1 Configuration
+
+Here are parameters for the standalone .
+
+| Parameters          | Physical meanings                                            |
+| ------------------- | ------------------------------------------------------------ |
+| code_type           | Type of erasure codes (e.g., azurelrc for Azure-LRC)         |       
+| erasure_code_n      | Number of data and parity chunks in a stripe                 |
+| erasure_code_k      | Number of data chunks in a stripe                            |
+| erasure_code_r      | Number of data chunks in a local parity group                |
+| fs_type             | Type of deployment (e.g., standalone for Azure-LRC)          |
+| local_data_path     | Absolute path that stores the data chunks (also called blocks) |
+
+Here is an example of the configuration file with Azure-LRC parameters.
+
+```
+<setting>
+<attribute><name>code_type</name><value>azurelrc</value></attribute>
+<attribute><name>erasure_code_n</name><value>10</value></attribute>
+<attribute><name>erasure_code_k</name><value>6</value></attribute>
+<attribute><name>erasure_code_r</name><value>3</value></attribute>
+<attribute><name>fs_type</name><value>standalone</value></attribute>
+<attribute><name>peer_node_num</name><value>12</value></attribute>
+<attribute><name>packet_size</name><value>4194304</value></attribute>
+<attribute><name>chunk_size</name><value>67108864</value></attribute>
+<attribute><name>meta_size</name><value>524295</value></attribute>
+<attribute><name>stripe_num</name><value>1000</value></attribute>
+<attribute><name>disk_bandwidth</name><value>100</value></attribute>
+<attribute><name>network_bandwidth</name><value>1</value></attribute>
+<attribute><name>coordinator_ip</name><value>192.168.10.51</value></attribute>
+<attribute><name>repair_scenario</name><value>scatteredRepair</value></attribute>
+<attribute><name>hotstandby_node_num</name><value>3</value></attribute>
+<attribute><name>peer_node_ips</name>
+<value>192.168.10.52</value>
+<value>192.168.10.53</value>
+<value>192.168.10.54</value>
+<value>192.168.10.55</value>
+<value>192.168.10.56</value>
+<value>192.168.10.57</value>
+<value>192.168.10.58</value>
+<value>192.168.10.59</value>
+<value>192.168.10.60</value>
+<value>192.168.10.61</value>
+<value>192.168.10.62</value>
+<value>192.168.10.63</value>
+</attribute>
+<attribute><name>hotstandby_node_ips</name>
+<value>192.168.10.64</value>
+<value>192.168.10.65</value>
+<value>192.168.10.66</value>
+</attribute>
+<attribute><name>local_ip</name><value>192.168.10.51</value></attribute>
+<attribute><name>local_data_path</name><value>/home/xiaolu/fastpr/fastpr-v1.0/xiaolu-framework/blkDir</value></attribute>
+</setting>
+```
+
+#### 4.2 Data Generation
+
+We provide a script to generate the encoded stripes and distribute them to all the peer nodes.
+In each node, the data chunks are stored in `local_data_path`, which we set in the configuration file.
+
+We first compile the code to generate a stripe.
+  ```shell
+  $ cd genlrc; make; 
+  ```
+
+Then we run the code to generate a stripe of chunks encoded by Azure-LRC(10,6,3). Each chunk is 64MiB.
+  ```shell
+  $ ./createdata 64 10 6 3
+  ```shell
+
+Finally, we run the script to distribute chunks. The following command generate 50 stripes and distribute
+all chunks to all the peer nodes. Supposing the first peer node (192.168.10.52 in our example) is the soon
+to fail node. After data distribution, there are 50 chunks in the soon to fail node, and 40 chunks out of 
+the total 50 chunks are data chunks or local parity chunks.
+  ```shell
+  $ cd ../script; python dist.py 50 0.8
+  ```
+
+#### 4.3 Run FastPR for Azure-LRC
+
+We run the following script to start the standalone system of FastPR with scattered repair:
+  ```shell
+  $ python script/start.py
+  ```
+
+To repair all the chunks in the soon to fail node:
+  ```shell
+  $ ./AzureLRCTest fastpr sct
+  ```
+
+For hot-standby repair, we start the system with:
+  ```shell
+  $ python script/starthot.py
+  ```
+
+To repair all the chunks in the soon to fail node:
+  ```shell
+  $ ./AzureLRCTest fastpr hsb
+  ```

@@ -6,7 +6,7 @@ If you have any question about the deployment, please feel free to contact me at
 zhirong.shen2601@gmail.com 
 
 We further extend the idea of FastPR to Azure's Local Reconstruction Codes
-(Azure-LRC). Please refer to section 4 in this file for Azure-LRC deployment.
+(AzureLRC). Please refer to section 4 in this file for AzureLRC deployment.
 
 
 
@@ -298,22 +298,22 @@ $ ./FastPRCoordinator 0 fastpr 50      # for FastPR
 When the program runs, the coordinator will find a DataNode to store each repaired data chunk and its metadata chunk. The repaired data chunks and their metadata chunks are stored at the path "$local_data_path/subdir0" of the DataNode ($local_data_path is specified in the config.xml file (see Section 2.1)). 
 
 
-## 4. Azure-LRC deployment
+## 4. AzureLRC deployment
 
 #### 4.1 Configuration
 
-Here are parameters for the standalone deployment of FastPR for Azure-LRC.
+Here are parameters for the standalone deployment of FastPR for AzureLRC.
 
 | Parameters          | Physical meanings                                            |
 | ------------------- | ------------------------------------------------------------ |
-| code_type           | Type of erasure codes (e.g., azurelrc for Azure-LRC)         |       
+| code_type           | Type of erasure codes (e.g., azurelrc for AzureLRC)         |       
 | erasure_code_n      | Number of data and parity chunks in a stripe                 |
 | erasure_code_k      | Number of data chunks in a stripe                            |
 | erasure_code_r      | Number of data chunks in a local parity group                |
-| fs_type             | Type of deployment (e.g., standalone for Azure-LRC)          |
+| fs_type             | Type of deployment (e.g., standalone for AzureLRC)          |
 | local_data_path     | Absolute path that stores the data chunks (also called blocks) |
 
-Here is an example of the configuration file with Azure-LRC parameters.
+Here is an example of the configuration file with AzureLRC parameters.
 
 ```
 <setting>
@@ -366,7 +366,7 @@ We first compile the code to generate a stripe.
   $ cd genlrc; make; 
   ```
 
-Then we run the code to generate a stripe of chunks encoded by Azure-LRC(10,6,3). Each chunk is 64MiB.
+Then we run the code to generate a stripe of chunks encoded by AzureLRC(10,6,3). Each chunk is 64MiB.
   ```shell
   $ ./createdata 64 10 6 3
   ```
@@ -379,7 +379,7 @@ the total 50 chunks are data chunks or local parity chunks.
   $ cd ../script; python dist.py 50 0.8
   ```
 
-#### 4.3 Run FastPR for Azure-LRC
+#### 4.3 Run FastPR for AzureLRC
 
 We run the following script to start the standalone system of FastPR with scattered repair:
   ```shell

@@ -13,19 +13,19 @@ int main(int argc, char** argv){
     if(argc != 3){
         cout << "Usage: ./AzureLRCTest" << endl;
         cout << "    1. repair method [fastpr|recon|mig]" << endl;
-        cout << "    2. fastpr method [sct|hsb]" << endl;
+        cout << "    2. fastpr method [scatteredRepair|hotStandbyRepair]" << endl;
         exit(1);
     }
 
     string repairmethod = argv[1];
     string fastprmethod = argv[2];
 
-    string scenario;
-    if (fastprmethod == "sct") {
-        scenario = "scatteredRepair";
-    } else {
-        scenario = "hotStandbyRepair";
-    }
+    string scenario = fastprmethod;
+    //if (fastprmethod == "sct") {
+    //    scenario = "scatteredRepair";
+    //} else {
+    //    scenario = "hotStandbyRepair";
+    //}
 
     int stfnode = 0;
     

@@ -392,7 +392,7 @@ We run the following script to start the standalone system of FastPR with scatte
 
 To repair all the chunks in the soon to fail node:
   ```shell
-  $ ./AzureLRCTest fastpr scatteredRepair
+  $ ./AzureLRCCoordinator  0 fastpr 50
   ```
 
 For hot-standby repair, we start the system with:
@@ -402,5 +402,5 @@ For hot-standby repair, we start the system with:
 
 To repair all the chunks in the soon to fail node:
   ```shell
-  $ ./AzureLRCTest fastpr hotStandbyRepair
+  $ ./AzureLRCCoordinator 0 fastpr 50
   ```

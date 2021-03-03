@@ -10,29 +10,27 @@ using namespace std;
 
 int main(int argc, char** argv){
 
-    if(argc != 3){
-        cout << "Usage: ./AzureLRCTest" << endl;
-        cout << "    1. repair method [fastpr|recon|mig]" << endl;
-        cout << "    2. fastpr method [scatteredRepair|hotStandbyRepair]" << endl;
-        exit(1);
+    if(argc != 4){
+        cout << "Usage: ./AzureLRCCoordinator" << endl;
+        cout << "    1. id of stf node" << endl;
+        cout << "    2. repair method" << endl;
+        cout << "    3. number of repaired chunks" << endl;
     }
 
-    string repairmethod = argv[1];
-    string fastprmethod = argv[2];
+    int stfnode = atoi(argv[1]);
+    string repairmethod = argv[2];
+    int chunknum = atoi(argv[3]);
 
-    string scenario = fastprmethod;
-    //if (fastprmethod == "sct") {
-    //    scenario = "scatteredRepair";
-    //} else {
-    //    scenario = "hotStandbyRepair";
-    //}
-
-    int stfnode = 0;
-    
     Config* conf = new Config("metadata/config.xml");
+    string scenario = conf->_repair_scenario;
    
     Coordinator *coord = new Coordinator(conf);
     coord->getLostInfo(stfnode);
+
+    if (coord->getLostNum() < chunknum) {
+        cout << "ERROR: The number of chunks in the STF node is less than " << chunknum << endl;
+        return -1;
+    }
 
     struct timeval begin_tm, end_tm;                                                                                                                                                                                                                                              
     gettimeofday(&begin_tm, NULL);

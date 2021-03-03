@@ -161,8 +161,7 @@ The configuration of FastPR is realized by a XML file named config.xml, which is
 | erasure_code_k      | Number of data chunks in a stripe                            |
 | erasure_code_n      | Number of data and parity chunks in a stripe                 |
 | erasure_code_r      | Number of data chunks in a local parity group for AzureLRC   |
-| fs_type             | Type of underline distributed storage systems (`hdfs` for HDFS and
-`standalone` for standalone system) |
+| fs_type             | Type of underline distributed storage systems (`hdfs` for HDFS and `standalone` for standalone system) |
 | peer_node_num       | Number of nodes in a system                                  |
 | packet_size         | Size of packet in read, transmission, and write (to enable pipelining) |
 | chunk_size          | Size of a chunk, also called block, in HDFS (in unit of bytes) |

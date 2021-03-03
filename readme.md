@@ -157,8 +157,12 @@ The configuration of FastPR is realized by a XML file named config.xml, which is
 
 | Parameters          | Physical meanings                                            |
 | ------------------- | ------------------------------------------------------------ |
+| code_type           | Type of erasure codes (`rs` for RS codes and `azurelrc` for AzureLRC) |
 | erasure_code_k      | Number of data chunks in a stripe                            |
 | erasure_code_n      | Number of data and parity chunks in a stripe                 |
+| erasure_code_r      | Number of data chunks in a local parity group for AzureLRC   |
+| fs_type             | Type of underline distributed storage systems (`hdfs` for HDFS and
+`standalone` for standalone system) |
 | peer_node_num       | Number of nodes in a system                                  |
 | packet_size         | Size of packet in read, transmission, and write (to enable pipelining) |
 | chunk_size          | Size of a chunk, also called block, in HDFS (in unit of bytes) |
@@ -182,8 +186,10 @@ The following table shows the configuration parameters used in our testbed.
 
 ```xml
 <setting>
+<attribute><name>code_type</name><value>rs</value></attribute>
 <attribute><name>erasure_code_k</name><value>3</value></attribute>
 <attribute><name>erasure_code_n</name><value>5</value></attribute>
+<attribute><name>fs_type</name><value>hdfs</value></attribute>
 <attribute><name>peer_node_num</name><value>8</value></attribute>
 <attribute><name>packet_size</name><value>4194304</value></attribute>
 <attribute><name>chunk_size</name><value>67108864</value></attribute>
@@ -306,16 +312,15 @@ Here are parameters for the standalone deployment of FastPR for AzureLRC.
 
 | Parameters          | Physical meanings                                            |
 | ------------------- | ------------------------------------------------------------ |
-| code_type           | Type of erasure codes (e.g., azurelrc for AzureLRC)         |       
+| code_type           | Type of erasure codes (e.g., `azurelrc` for AzureLRC)         |       
 | erasure_code_n      | Number of data and parity chunks in a stripe                 |
 | erasure_code_k      | Number of data chunks in a stripe                            |
 | erasure_code_r      | Number of data chunks in a local parity group                |
-| fs_type             | Type of deployment (e.g., standalone for AzureLRC)          |
-| local_data_path     | Absolute path that stores the data chunks (also called blocks) |
+| fs_type             | Type of deployment (e.g., `standalone` for AzureLRC)          |
 
 Here is an example of the configuration file with AzureLRC parameters.
 
-```
+```html
 <setting>
 <attribute><name>code_type</name><value>azurelrc</value></attribute>
 <attribute><name>erasure_code_n</name><value>10</value></attribute>
